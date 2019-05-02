@@ -95,7 +95,7 @@ fn run_creduce_driver(seed: Seed) {
         .unwrap();
     assert!(st.success());
 
-    let st = Command::new("clang")
+    let st = Command::new(clang())
         .arg("-I/usr/include/csmith")
         .arg("-m32")
         .arg("-E")
@@ -280,7 +280,7 @@ fn run_both<P: AsRef<Path>>(
 fn run_native<P: AsRef<Path>>(tmpdir: &TempDir, gen_c_path: P) -> Result<Option<Vec<u8>>, Error> {
     let gen_path = tmpdir.path().join("gen");
 
-    let res = Command::new("clang")
+    let res = Command::new(clang())
         .arg("-m32")
         .arg("-std=c11")
         .arg("-Werror=format")
@@ -421,4 +421,12 @@ fn wasi_test<P: AsRef<Path>>(tmpdir: &TempDir, c_file: P) -> Result<Arc<dyn Modu
     let dlmodule = DlModule::load(so_file)?;
 
     Ok(dlmodule as Arc<dyn Module>)
+}
+
+fn clang() -> PathBuf {
+    if let Some(lucet_clang) = std::env::var_os("LUCET_NATIVE_CLANG") {
+        lucet_clang.into()
+    } else {
+        Path::new("clang").to_owned()
+    }
 }
