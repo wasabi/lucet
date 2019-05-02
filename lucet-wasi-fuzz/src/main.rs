@@ -191,7 +191,10 @@ fn run_one_seed(seed: Seed) {
             println!("lucet-wasi: {}", String::from_utf8_lossy(&actual));
             exit(1);
         }
-        Ok(TestResult::Errored { error }) | Err(error) => println!("test errored: {}", error),
+        Ok(TestResult::Errored { error }) | Err(error) => {
+            println!("test errored: {}", error);
+            exit(1);
+        }
     }
 }
 
