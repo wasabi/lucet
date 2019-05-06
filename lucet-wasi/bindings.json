@@ -22,5 +22,17 @@
         "path_open": "__wasi_path_open",
         "poll_oneoff": "__wasi_poll_oneoff",
         "random_get": "__wasi_random_get"
+    },
+    "env": {
+        "io_get_stdout": "__io_get_stdout",
+        "resource_write": "__resource_write",
+        "runtime.ticks": "__tick",
+        "random": "_random",
+        "syscall/js.stringVal": "__js_string_val",
+        "syscall/js.valueGet": "__js_value_get",
+        "syscall/js.valuePrepareString": "__js_value_prepare_string",
+        "syscall/js.valueLoadString": "__js_value_load_string",
+        "syscall/js.valueNew": "__js_value_new",
+        "syscall/js.valueCall": "__js_value_call"
     }
 }

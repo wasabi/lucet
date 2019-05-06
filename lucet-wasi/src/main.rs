@@ -5,7 +5,7 @@ use clap::Arg;
 use human_size::{Byte, Size};
 use lucet_runtime::{self, DlModule, Limits, MmapRegion, Module, Region};
 use lucet_runtime_internals::module::ModuleInternal;
-use lucet_wasi::{hostcalls, WasiCtxBuilder};
+use lucet_wasi::{hostcalls, wasabi, WasiCtxBuilder};
 use std::fs::File;
 use std::sync::Arc;
 
@@ -22,6 +22,7 @@ fn main() {
     // of the runtime:
     lucet_runtime::lucet_internal_ensure_linked();
     hostcalls::ensure_linked();
+    wasabi::ensure_linked();
 
     let matches = app_from_crate!()
         .arg(

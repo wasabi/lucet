@@ -21,6 +21,7 @@ RUN apt-get update \
     clang-6.0 \
  && rm -rf /var/lib/apt/lists/*
 
+
 RUN update-alternatives --install /usr/bin/clang clang /usr/bin/clang-6.0 100
 
 # Setting a consistent LD_LIBRARY_PATH across the entire environment prevents unnecessary Cargo
@@ -40,3 +41,5 @@ RUN curl -sS -L -O https://github.com/CraneStation/wasi-sdk/releases/download/wa
  && dpkg -i wasi-sdk_4.0_amd64.deb && rm -f wasi-sdk_4.0_amd64.deb
 
 ENV WASI_SDK=/opt/wasi-sdk
+
+WORKDIR /lucet

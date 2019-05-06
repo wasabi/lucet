@@ -1,0 +1,16 @@
+version: '3.3'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - app:/opt/
+      - /home/ubuntu/lucet:/lucet
+    environment:
+      - CARGO_HOME=/opt/cargo-home
+
+volumes:
+  app:
+  target:
