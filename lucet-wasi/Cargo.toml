@@ -15,6 +15,7 @@ lucet-runtime = { path = "../lucet-runtime" }
 lucet-runtime-internals = { path = "../lucet-runtime/lucet-runtime-internals" }
 nix = "0.13"
 rand = "0.6"
+wasabi = { path = "../wasabi" }
 
 [dev-dependencies]
 lucetc = { path = "../lucetc" }

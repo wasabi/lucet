@@ -11,6 +11,7 @@ members = [
   "lucet-wasi-fuzz",
   "lucet-wasi-sdk",
   "lucetc",
+  "wasabi",
   "sightglass",
   "benchmarks/lucet-benchmarks",
 ]

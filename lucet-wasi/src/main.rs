@@ -5,9 +5,10 @@ use clap::Arg;
 use human_size::{Byte, Size};
 use lucet_runtime::{self, DlModule, Limits, MmapRegion, Module, Region};
 use lucet_runtime_internals::module::ModuleInternal;
-use lucet_wasi::{hostcalls, wasabi, WasiCtxBuilder};
+use lucet_wasi::{hostcalls, wasabi_hostcalls, WasiCtxBuilder};
 use std::fs::File;
 use std::sync::Arc;
+use wasabi::WASABI;
 
 struct Config<'a> {
     lucet_module: &'a str,
@@ -22,7 +23,7 @@ fn main() {
     // of the runtime:
     lucet_runtime::lucet_internal_ensure_linked();
     hostcalls::ensure_linked();
-    wasabi::ensure_linked();
+    wasabi_hostcalls::ensure_linked();
 
     let matches = app_from_crate!()
         .arg(
@@ -64,21 +65,21 @@ fn main() {
             Arg::with_name("heap_memory_size")
                 .long("max-heap-size")
                 .takes_value(true)
-                .default_value("4 GiB")
+                .default_value("4 MiB")
                 .help("Maximum heap size (must be a multiple of 4 KiB)"),
         )
         .arg(
             Arg::with_name("heap_address_space_size")
                 .long("heap-address-space")
                 .takes_value(true)
-                .default_value("8 GiB")
+                .default_value("8 MiB")
                 .help("Maximum heap address space size (must be a multiple of 4 KiB, and >= `max-heap-size`)"),
         )
         .arg(
             Arg::with_name("stack_size")
                 .long("stack-size")
                 .takes_value(true)
-                .default_value("8 MiB")
+                .default_value("256 KiB")
                 .help("Maximum stack size (must be a multiple of 4 KiB)"),
         )
         .arg(
@@ -188,17 +189,29 @@ fn run(config: Config) {
             .with_embed_ctx(ctx.build().expect("WASI ctx can be created"))
             .build()
             .expect("instance can be created");
-
-        match inst.run(config.entrypoint.as_bytes(), &[]) {
-            // normal termination implies 0 exit code
-            Ok(_) => 0,
-            Err(lucet_runtime::Error::RuntimeTerminated(
-                lucet_runtime::TerminationDetails::Provided(any),
-            )) => *any
-                .downcast_ref::<lucet_wasi::host::__wasi_exitcode_t>()
-                .expect("termination yields an exitcode"),
-            Err(e) => panic!("lucet-wasi runtime error: {}", e),
+        let mut entrypoint = config.entrypoint;
+        let mut exit_code = 0;
+        loop {
+            exit_code = match inst.run(entrypoint.as_bytes(), &[]) {
+                // normal termination implies 0 exit code
+                Ok(_) => 0,
+                Err(lucet_runtime::Error::RuntimeTerminated(
+                    lucet_runtime::TerminationDetails::Provided(any),
+                )) => *any
+                    .downcast_ref::<lucet_wasi::host::__wasi_exitcode_t>()
+                    .expect("termination yields an exitcode"),
+                Err(e) => panic!("lucet-wasi runtime error: {}", e),
+            };
+            if exit_code != 0 {
+                break;
+            }
+            let mut wasabi = WASABI.lock().unwrap();
+            match wasabi.process_event_loop() {
+                None => break,
+                Some(ep) => entrypoint = ep,
+            }
         }
+        exit_code
     };
     std::process::exit(exitcode as i32);
 }
